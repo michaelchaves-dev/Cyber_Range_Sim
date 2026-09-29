@@ -1,0 +1,1254 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; img-src data:; style-src 'unsafe-inline'; script-src 'unsafe-inline'; connect-src 'none'; font-src 'none'; object-src 'none'; media-src 'none'; worker-src 'none'; manifest-src 'none'">
+  <meta name="color-scheme" content="dark">
+  <title>Cyber Range Simulator (Hardened) | Defensive Tabletop Exercise</title>
+  <style>
+    :root {
+      --bg: #07101a;
+      --panel: #0d1c2a;
+      --panel-2: #112637;
+      --line: #24445b;
+      --text: #e9f5ff;
+      --muted: #9bb4c8;
+      --cyan: #41d9ff;
+      --green: #55e6a5;
+      --amber: #ffc857;
+      --red: #ff6b6b;
+      --purple: #a78bfa;
+      --shadow: 0 16px 45px rgba(0,0,0,.28);
+      --radius: 16px;
+    }
+  
+    * { box-sizing: border-box; }
+  
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at 18% 0%, rgba(65,217,255,.14), transparent 28rem),
+        radial-gradient(circle at 94% 8%, rgba(167,139,250,.10), transparent 25rem),
+        var(--bg);
+      color: var(--text);
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.5;
+    }
+  
+    button, input, select, textarea { font: inherit; }
+  
+    button {
+      color: var(--text);
+      background: #163149;
+      border: 1px solid #315873;
+      border-radius: 10px;
+      padding: .72rem .95rem;
+      cursor: pointer;
+      transition: transform .15s ease, background .15s ease, border-color .15s ease;
+    }
+  
+    button:hover {
+      transform: translateY(-1px);
+      background: #1b3c58;
+      border-color: var(--cyan);
+    }
+  
+    button.primary {
+      background: linear-gradient(135deg, #087a98, #1356a5);
+      border-color: #49d9ff;
+      font-weight: 700;
+    }
+  
+    button.danger {
+      background: rgba(175, 38, 55, .28);
+      border-color: rgba(255,107,107,.65);
+    }
+  
+    input, select, textarea {
+      width: 100%;
+      color: var(--text);
+      background: #081724;
+      border: 1px solid #2b4f68;
+      border-radius: 10px;
+      padding: .72rem .8rem;
+    }
+  
+    textarea { min-height: 115px; resize: vertical; }
+  
+    .shell { max-width: 1450px; margin: 0 auto; padding: 1.2rem; }
+  
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 1rem;
+      padding: 1rem 0 1.5rem;
+    }
+  
+    h1, h2, h3, p { margin-top: 0; }
+  
+    h1 {
+      font-size: clamp(1.55rem, 3vw, 2.45rem);
+      letter-spacing: -.045em;
+      margin-bottom: .35rem;
+    }
+  
+    h2 { font-size: 1.12rem; margin-bottom: .85rem; }
+    h3 { font-size: .94rem; color: var(--cyan); margin-bottom: .45rem; }
+  
+    .subtitle { color: var(--muted); max-width: 800px; margin-bottom: 0; }
+  
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      color: var(--green);
+      border: 1px solid rgba(85,230,165,.35);
+      background: rgba(85,230,165,.08);
+      border-radius: 999px;
+      padding: .42rem .7rem;
+      white-space: nowrap;
+      font-size: .84rem;
+    }
+  
+    .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 13px var(--green);
+    }
+  
+    .notice {
+      color: #d9efff;
+      border-left: 3px solid var(--amber);
+      background: rgba(255,200,87,.08);
+      border-radius: 8px;
+      padding: .8rem 1rem;
+      margin-bottom: 1rem;
+      font-size: .91rem;
+    }
+  
+    .grid { display: grid; gap: 1rem; }
+    .top-grid { grid-template-columns: minmax(0, 1.15fr) minmax(300px, .85fr); }
+    .main-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+    .metrics { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  
+    .card {
+      background: linear-gradient(145deg, rgba(17,38,55,.96), rgba(10,26,39,.96));
+      border: 1px solid rgba(86,137,166,.33);
+      box-shadow: var(--shadow);
+      border-radius: var(--radius);
+      padding: 1rem;
+    }
+  
+    .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .78rem; }
+    .field-grid .wide { grid-column: 1 / -1; }
+  
+    label {
+      display: block;
+      color: var(--muted);
+      font-size: .78rem;
+      letter-spacing: .02em;
+      margin-bottom: .3rem;
+    }
+  
+    .controls { display: flex; flex-wrap: wrap; gap: .65rem; align-items: center; }
+  
+    .metric {
+      padding: 1rem;
+      border: 1px solid #244a63;
+      background: rgba(6,20,31,.55);
+      border-radius: 12px;
+    }
+  
+    .metric .number {
+      display: block;
+      color: var(--cyan);
+      font-size: 1.7rem;
+      font-weight: 800;
+      letter-spacing: -.05em;
+    }
+  
+    .metric .label { color: var(--muted); font-size: .78rem; }
+  
+    .progress-track {
+      height: 11px;
+      background: #07131e;
+      border: 1px solid #29495e;
+      border-radius: 999px;
+      overflow: hidden;
+      margin: .35rem 0 .8rem;
+    }
+  
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--green), var(--cyan), var(--amber), var(--red));
+      transition: width .35s ease;
+    }
+  
+    .phase-list { display: grid; gap: .55rem; }
+  
+    .phase {
+      display: grid;
+      grid-template-columns: 2.1rem 1fr auto;
+      align-items: center;
+      gap: .7rem;
+      border: 1px solid #23445a;
+      background: rgba(6,18,28,.55);
+      border-radius: 11px;
+      padding: .65rem;
+    }
+  
+    .phase.active { border-color: var(--cyan); background: rgba(65,217,255,.09); }
+    .phase.complete { border-color: rgba(85,230,165,.55); }
+  
+    .phase-number {
+      width: 2rem;
+      height: 2rem;
+      display: grid;
+      place-items: center;
+      color: #06111b;
+      background: var(--muted);
+      border-radius: 50%;
+      font-weight: 800;
+      font-size: .8rem;
+    }
+  
+    .phase.active .phase-number { background: var(--cyan); }
+    .phase.complete .phase-number { background: var(--green); }
+  
+    .phase-title { font-weight: 700; font-size: .9rem; }
+    .phase-subtitle { color: var(--muted); font-size: .76rem; }
+  
+    .badge {
+      border-radius: 999px;
+      padding: .24rem .52rem;
+      font-size: .7rem;
+      border: 1px solid currentColor;
+      color: var(--muted);
+    }
+  
+    .severity-low { color: var(--green); }
+    .severity-medium { color: var(--amber); }
+    .severity-high { color: #ff9f68; }
+    .severity-critical { color: var(--red); }
+  
+    .timeline { display: grid; gap: .68rem; }
+  
+    .event {
+      display: grid;
+      grid-template-columns: 70px 1fr;
+      gap: .7rem;
+      border-left: 2px solid #315a73;
+      padding: .3rem 0 .3rem .8rem;
+    }
+  
+    .event-time { color: var(--cyan); font-size: .79rem; font-weight: 700; }
+    .event-title { font-weight: 700; font-size: .9rem; }
+    .event-detail { color: var(--muted); font-size: .82rem; }
+  
+    .event.locked { opacity: .32; }
+  
+    .choice-list { display: grid; gap: .65rem; }
+  
+    .choice {
+      width: 100%;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: .75rem;
+      text-align: left;
+      padding: .8rem;
+    }
+  
+    .choice.selected {
+      border-color: var(--green);
+      background: rgba(85,230,165,.11);
+    }
+  
+    .choice-title { font-weight: 700; display: block; font-size: .88rem; }
+    .choice-detail { color: var(--muted); display: block; font-size: .77rem; margin-top: .15rem; }
+    .choice-score { color: var(--green); font-size: .77rem; white-space: nowrap; }
+  
+    .control-checks { display: grid; grid-template-columns: 1fr 1fr; gap: .55rem; }
+  
+    .check {
+      display: flex;
+      gap: .52rem;
+      align-items: flex-start;
+      color: var(--muted);
+      background: rgba(5,16,25,.45);
+      border: 1px solid #214257;
+      padding: .6rem;
+      border-radius: 10px;
+      font-size: .82rem;
+    }
+  
+    .check input { width: auto; margin-top: .2rem; accent-color: var(--green); }
+  
+    .table-wrap { overflow-x: auto; }
+  
+    table { width: 100%; border-collapse: collapse; font-size: .84rem; }
+  
+    th, td {
+      text-align: left;
+      padding: .68rem;
+      border-bottom: 1px solid #24455c;
+      vertical-align: top;
+    }
+  
+    th { color: var(--cyan); font-size: .74rem; letter-spacing: .04em; text-transform: uppercase; }
+    td { color: #d7e9f4; }
+    td.muted { color: var(--muted); }
+  
+    .report {
+      white-space: pre-wrap;
+      min-height: 270px;
+      color: #dcedf6;
+      background: #06131d;
+      border: 1px solid #294e65;
+      border-radius: 11px;
+      padding: .9rem;
+      font: .79rem/1.55 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+  
+    .small { color: var(--muted); font-size: .78rem; }
+  
+    footer { color: var(--muted); text-align: center; padding: 1.4rem .3rem .5rem; font-size: .76rem; }
+  
+    @media (max-width: 950px) {
+      .top-grid, .main-grid { grid-template-columns: 1fr; }
+      .metrics { grid-template-columns: 1fr 1fr; }
+    }
+  
+    @media (max-width: 600px) {
+      .shell { padding: .75rem; }
+      header { flex-direction: column; }
+      .field-grid, .control-checks, .metrics { grid-template-columns: 1fr; }
+      .event { grid-template-columns: 58px 1fr; }
+    }
+  
+    @media print {
+      :root { --bg: #fff; --panel: #fff; --text: #10202e; --muted: #45606e; }
+      body { background: #fff; color: #10202e; }
+      .shell { max-width: none; padding: 0; }
+      .card, .metric, .phase, .check { box-shadow: none; background: #fff; border-color: #b7c8d1; }
+      button, .controls, .notice { display: none !important; }
+      .grid { break-inside: avoid; }
+      .report { color: #10202e; background: #fff; border-color: #aebfc8; }
+      .event.locked { opacity: 1; }
+      .status { color: #176b47; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header>
+      <div>
+        <h1>Cyber Range Simulator</h1>
+        <p class="subtitle">An offline defensive tabletop exercise tool for authorized training, detection planning, incident response, and control validation.</p>
+      </div>
+      <div class="status"><span class="dot"></span> Hardened · Local-only · 0 network requests</div>
+    </header>
+  
+    <div class="notice">
+      <strong>Authorized use only:</strong> This simulator uses fictional environments and defensive learning scenarios. It does not perform reconnaissance, exploitation, scanning, credential activity, or actions against any real system.
+    </div>
+  
+    <section class="grid top-grid">
+      <div class="card">
+        <h2>Exercise setup</h2>
+        <div class="field-grid">
+          <div>
+            <label for="organization">Organization / team</label>
+            <input id="organization" placeholder="Example: TokenRefine Cyber Range">
+          </div>
+          <div>
+            <label for="facilitator">Facilitator</label>
+            <input id="facilitator" placeholder="Your name">
+          </div>
+          <div>
+            <label for="scenario">Scenario</label>
+            <select id="scenario">
+              <option value="ransomware">Ransomware readiness drill</option>
+              <option value="phishing">Business email compromise drill</option>
+              <option value="cloud">Cloud account exposure drill</option>
+              <option value="vendor">Third-party vendor incident drill</option>
+            </select>
+          </div>
+          <div>
+            <label for="difficulty">Exercise difficulty</label>
+            <select id="difficulty">
+              <option value="guided">Guided — recommended</option>
+              <option value="standard">Standard</option>
+              <option value="advanced">Advanced</option>
+            </select>
+          </div>
+          <div class="wide">
+            <label for="objective">Primary objective</label>
+            <input id="objective" value="Validate detection, containment, communications, and recovery decisions.">
+          </div>
+        </div>
+  
+        <div class="controls" style="margin-top: 1rem;">
+          <button class="primary" id="startBtn">Start / restart exercise</button>
+          <button id="saveBtn">Save scenario locally</button>
+          <button id="loadBtn">Load saved scenario</button>
+          <button id="reportBtn">Generate report</button>
+          <button id="printBtn">Print / save PDF</button>
+        </div>
+      </div>
+  
+      <div class="card">
+        <h2>Exercise scorecard</h2>
+        <div class="grid metrics">
+          <div class="metric">
+            <span class="number" id="scoreValue">0</span>
+            <span class="label">Response score</span>
+          </div>
+          <div class="metric">
+            <span class="number" id="phaseValue">0/5</span>
+            <span class="label">Phases completed</span>
+          </div>
+          <div class="metric">
+            <span class="number" id="controlsValue">0%</span>
+            <span class="label">Controls checked</span>
+          </div>
+          <div class="metric">
+            <span class="number" id="riskValue">High</span>
+            <span class="label">Current risk level</span>
+          </div>
+        </div>
+        <p class="small" style="margin: 1rem 0 .3rem;">Exercise progress</p>
+        <div class="progress-track"><div class="progress-bar" id="progressBar"></div></div>
+        <p class="small" id="statusText">Choose a scenario and start the exercise.</p>
+      </div>
+    </section>
+  
+    <section class="grid main-grid" style="margin-top: 1rem;">
+      <div class="card">
+        <h2>Scenario progression</h2>
+        <div class="phase-list" id="phaseList"></div>
+      </div>
+  
+      <div class="card">
+        <h2>Decision point</h2>
+        <div id="decisionPanel">
+          <p class="small">Start an exercise to receive a fictional incident inject and select the most appropriate response.</p>
+        </div>
+      </div>
+    </section>
+  
+    <section class="grid main-grid" style="margin-top: 1rem;">
+      <div class="card">
+        <h2>Fictional incident timeline</h2>
+        <div class="timeline" id="timeline"></div>
+      </div>
+  
+      <div class="card">
+        <h2>Defensive control validation</h2>
+        <p class="small">Mark controls your organization can demonstrate today. This contributes to the readiness score; it does not prove security.</p>
+        <div class="control-checks" id="controlChecks"></div>
+      </div>
+    </section>
+  
+    <section class="card" style="margin-top: 1rem;">
+      <h2>Detection and response map</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Exercise phase</th>
+              <th>Fictional observation</th>
+              <th>Defensive visibility</th>
+              <th>Recommended action</th>
+              <th>Framework mapping</th>
+            </tr>
+          </thead>
+          <tbody id="mappingTable"></tbody>
+        </table>
+      </div>
+    </section>
+  
+    <section class="grid main-grid" style="margin-top: 1rem;">
+      <div class="card">
+        <h2>Facilitator notes</h2>
+        <label for="notes">Record decisions, ownership gaps, unanswered questions, and follow-up actions</label>
+        <textarea id="notes" placeholder="Example: Confirm who can disable a cloud account after business hours. Assign backup owner by Friday."></textarea>
+      </div>
+  
+      <div class="card">
+        <h2>Exercise report</h2>
+        <div id="report" class="report">No report generated yet.</div>
+      </div>
+    </section>
+  
+    <footer>
+      Cyber Range Simulator (Hardened) · Offline defensive tabletop · CSP-locked · No external requests.
+    </footer>
+  </main>
+  
+  <script>
+  (function () {
+    "use strict";
+
+    const STORAGE_KEY = "cyberRangeSimulatorState.v1";
+    const MAX_TEXT = 4000;
+    const ALLOWED_SCENARIOS = Object.freeze(["ransomware", "phishing", "cloud", "vendor"]);
+    const ALLOWED_DIFFICULTY = Object.freeze(["guided", "standard", "advanced"]);
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    function clampText(value, max) {
+      return String(value ?? "").slice(0, max);
+    }
+
+    function safeInt(value, fallback) {
+      const n = Number(value);
+      return Number.isFinite(n) ? Math.trunc(n) : fallback;
+    }
+
+    const scenarios = {
+      ransomware: {
+        name: "Ransomware readiness drill",
+        summary: "A fictional employee workstation shows unusual file-renaming activity and a ransom note simulation.",
+        phases: [
+          {
+            name: "Initial alert",
+            subtitle: "Endpoint telemetry flags suspicious mass file changes.",
+            time: "09:05",
+            event: "Endpoint protection creates a high-severity behavior alert on a finance workstation.",
+            observation: "Unusual file rename volume on FIN-WS-07; user reports shared-folder errors.",
+            visibility: "EDR behavioral alert, file-server audit logs, service-desk ticket.",
+            action: "Validate alert scope, preserve evidence, and open an incident record.",
+            mapping: "Detect · Analysis",
+            choices: [
+              ["Validate scope and preserve evidence", "Review authorized endpoint and file-server telemetry, document timestamps, and open an incident.", 25],
+              ["Wait for the user to report more issues", "Delays containment and risks wider impact.", -10],
+              ["Delete logs to reduce noise", "Destroys evidence and impairs recovery and investigation.", -25]
+            ]
+          },
+          {
+            name: "Containment",
+            subtitle: "Potential lateral impact appears in a shared workspace.",
+            time: "09:18",
+            event: "A second endpoint reports abnormal access failures to the same shared folder.",
+            observation: "Two systems show correlated alerts; a shared business folder may be affected.",
+            visibility: "Endpoint console, identity sign-in records, file-server activity.",
+            action: "Isolate affected endpoints using approved procedures and protect critical shares.",
+            mapping: "Respond · Containment",
+            choices: [
+              ["Isolate affected systems through approved EDR controls", "Contain systems while retaining evidence and business context.", 30],
+              ["Shut down the entire company network immediately", "May disrupt recovery and operations without confirming scope.", 5],
+              ["Continue normal work until a ransom note is confirmed", "Allows preventable impact to expand.", -20]
+            ]
+          },
+          {
+            name: "Identity review",
+            subtitle: "Investigators assess account activity and privileged access.",
+            time: "09:32",
+            event: "The workstation user’s account shows an unusual sign-in pattern in the exercise logs.",
+            observation: "A business account accessed a sensitive share outside its ordinary pattern.",
+            visibility: "Identity provider logs, MFA events, privileged-access audit trail.",
+            action: "Review identity events, revoke active sessions where justified, and reset exposed credentials through the approved workflow.",
+            mapping: "Respond · Identity protection",
+            choices: [
+              ["Review sessions and apply approved account containment", "Limits account misuse while preserving a documented audit trail.", 25],
+              ["Share passwords over chat so the team can act faster", "Creates a new credential exposure and no reliable audit trail.", -25],
+              ["Disable every employee account indefinitely", "Overbroad action can create avoidable operational harm.", 0]
+            ]
+          },
+          {
+            name: "Recovery decision",
+            subtitle: "Business leadership needs a restoration plan.",
+            time: "10:05",
+            event: "The exercise inject confirms that offline backups are available for the affected share.",
+            observation: "Backup integrity checks are pending; critical operations need selected files restored.",
+            visibility: "Backup console, recovery runbook, application owner validation.",
+            action: "Validate backup integrity, prioritize critical data, and restore under monitored conditions.",
+            mapping: "Recover · Restoration",
+            choices: [
+              ["Validate backups and restore prioritized services in a monitored sequence", "Supports safe, business-led recovery and confirmation of normal operations.", 30],
+              ["Restore all data without integrity checks", "Can reintroduce corrupted or unsafe content and complicate incident learning.", -10],
+              ["Pay a fictional demand before assessing backups", "Bypasses available recovery options and encourages poor decision discipline.", -15]
+            ]
+          },
+          {
+            name: "Lessons learned",
+            subtitle: "Convert findings into owned corrective actions.",
+            time: "11:00",
+            event: "The response team holds an after-action review.",
+            observation: "The drill exposed uncertainties in asset ownership, notification procedures, and recovery timing.",
+            visibility: "Incident record, action register, control evidence.",
+            action: "Assign owners and target dates for corrective actions; test improvements in a follow-up drill.",
+            mapping: "Improve · Governance",
+            choices: [
+              ["Create an owned corrective-action register with deadlines", "Turns observations into measurable resilience improvements.", 25],
+              ["Close the incident once systems are working", "Misses the opportunity to reduce repeat risk.", -10],
+              ["Keep findings informal and undocumented", "Prevents accountability and makes progress difficult to verify.", -15]
+            ]
+          }
+        ]
+      },
+  
+      phishing: {
+        name: "Business email compromise drill",
+        summary: "A fictional finance employee receives a convincing payment-change request that appears to come from a known executive.",
+        phases: [
+          {
+            name: "Initial report",
+            subtitle: "A finance user flags an unusual message.",
+            time: "08:42",
+            event: "Accounts payable forwards a message requesting an urgent vendor-bank-detail update.",
+            observation: "The sender display name looks familiar, but the message contains urgency and an unusual reply path.",
+            visibility: "Secure email gateway, user report, mailbox audit data.",
+            action: "Preserve the message, validate sender identity using an independent channel, and alert the response owner.",
+            mapping: "Detect · Email security",
+            choices: [
+              ["Verify the request through an independently known contact method", "Prevents trust in attacker-controlled communications.", 30],
+              ["Reply to the message asking if it is legitimate", "May confirm an active mailbox and relies on the same untrusted channel.", -5],
+              ["Process the banking change because it looks urgent", "Creates direct financial exposure.", -30]
+            ]
+          },
+          {
+            name: "Scope check",
+            subtitle: "Determine whether the message was isolated.",
+            time: "09:00",
+            event: "The email gateway shows similar messages to several finance employees.",
+            observation: "Four mailboxes received related messages; one user clicked a link in the simulation.",
+            visibility: "Email trace, web proxy logs, endpoint alerting.",
+            action: "Search and quarantine matching messages; examine the affected user session using approved defensive tooling.",
+            mapping: "Respond · Triage",
+            choices: [
+              ["Quarantine matching messages and review the affected account", "Reduces spread while investigating the potentially exposed session.", 30],
+              ["Tell each recipient to delete messages manually", "Slow, inconsistent, and does not preserve central evidence.", 0],
+              ["Ignore the other mailboxes because no payment was sent", "Leaves additional exposure unaddressed.", -20]
+            ]
+          },
+          {
+            name: "Payment safeguards",
+            subtitle: "The business process becomes the control boundary.",
+            time: "09:22",
+            event: "A vendor account manager calls about a pending payment update.",
+            observation: "The vendor record has no verified callback confirmation attached.",
+            visibility: "ERP audit trail, vendor master-data workflow, finance approval records.",
+            action: "Use dual approval and verified callback procedures before any payment or bank-detail change.",
+            mapping: "Protect · Business process",
+            choices: [
+              ["Require dual approval and verified callback before changes", "Adds a separate trusted verification channel.", 30],
+              ["Allow one employee to approve urgent changes", "Weakens segregation of duties at the riskiest moment.", -15],
+              ["Suspend all vendor payments indefinitely", "May be disproportionate without a clear business continuity plan.", 0]
+            ]
+          },
+          {
+            name: "Communications",
+            subtitle: "Communicate without amplifying confusion.",
+            time: "10:00",
+            event: "Leadership requests a concise briefing.",
+            observation: "The team has confirmed phishing exposure but no confirmed funds transfer.",
+            visibility: "Incident record, counsel/comms review process, finance leadership.",
+            action: "Provide a fact-based briefing: scope, confirmed facts, business impact, actions underway, and next update time.",
+            mapping: "Respond · Communications",
+            choices: [
+              ["Issue a fact-based internal briefing with a next-update time", "Improves coordination and avoids speculation.", 20],
+              ["Announce a breach before confirming facts", "Can create needless alarm and inaccurate records.", -10],
+              ["Avoid telling finance leadership until the incident is over", "Prevents timely business risk decisions.", -20]
+            ]
+          },
+          {
+            name: "Improvement",
+            subtitle: "Reduce repeat exposure.",
+            time: "10:45",
+            event: "The team identifies missed signals and process gaps.",
+            observation: "The most effective control was the independent vendor callback—not email filtering alone.",
+            visibility: "Training records, payment workflow evidence, email policy metrics.",
+            action: "Update finance controls, train staff on reporting cues, and measure simulation-reporting rates.",
+            mapping: "Improve · Resilience",
+            choices: [
+              ["Strengthen callback controls and test reporting behavior again", "Combines human, process, and technical controls.", 25],
+              ["Rely only on annual awareness training", "Training matters but cannot be the sole payment-defense control.", 0],
+              ["Block all external vendor messages", "Would severely disrupt operations and is not a sustainable control.", -10]
+            ]
+          }
+        ]
+      },
+  
+      cloud: {
+        name: "Cloud account exposure drill",
+        summary: "A fictional cloud-monitoring alert identifies an unexpected public-access configuration on a non-production data store.",
+        phases: [
+          {
+            name: "Configuration alert",
+            subtitle: "A cloud-security rule triggers.",
+            time: "13:10",
+            event: "Cloud posture monitoring detects a storage resource with an unexpected public-access setting.",
+            observation: "The resource belongs to a non-production project but may contain copied business records.",
+            visibility: "Cloud audit logs, posture-management alert, asset inventory.",
+            action: "Confirm ownership and exposure, remove public access through change-controlled procedures, and preserve relevant audit records.",
+            mapping: "Detect · Cloud security",
+            choices: [
+              ["Confirm scope, restrict access, and preserve audit evidence", "Balances rapid risk reduction with traceability.", 30],
+              ["Assume non-production data is harmless", "Test environments often contain copied sensitive data.", -20],
+              ["Delete the entire project before identifying ownership", "May destroy evidence and disrupt unrelated services.", -5]
+            ]
+          },
+          {
+            name: "Data classification",
+            subtitle: "Understand what could have been exposed.",
+            time: "13:28",
+            event: "Asset ownership confirms that the store was used for analytics testing.",
+            observation: "The dataset classification is incomplete; retention and access documentation are outdated.",
+            visibility: "Data inventory, tags/labels, project documentation, access history.",
+            action: "Classify the data, determine whether sensitive records exist, and identify who had access during the exposure window.",
+            mapping: "Identify · Data governance",
+            choices: [
+              ["Classify the dataset and assess access history", "Creates an evidence-based exposure assessment.", 30],
+              ["Assume it contains no sensitive data because it is analytics", "Analytics datasets can include identifiers and sensitive attributes.", -20],
+              ["Ask everyone to change passwords without assessing access", "May be disruptive and does not answer the exposure question.", 0]
+            ]
+          },
+          {
+            name: "Credential hygiene",
+            subtitle: "Review access pathways.",
+            time: "13:50",
+            event: "The exercise inject reveals an old service credential assigned broad permissions.",
+            observation: "The credential is not clearly tied to a current owner or documented workload.",
+            visibility: "IAM audit, secret inventory, workload identity records.",
+            action: "Rotate or retire the credential through approved change management and replace it with least-privilege workload identity where feasible.",
+            mapping: "Protect · Identity and access",
+            choices: [
+              ["Retire broad access and implement least-privilege ownership", "Reduces standing risk and improves accountability.", 30],
+              ["Publish the key in a shared document for convenience", "Creates avoidable credential exposure.", -30],
+              ["Keep it because it has not caused a problem yet", "Unowned credentials are a persistent high-risk condition.", -15]
+            ]
+          },
+          {
+            name: "Notification decision",
+            subtitle: "Decide escalation based on evidence.",
+            time: "14:18",
+            event: "The review finds no verified external access but incomplete logging during part of the window.",
+            observation: "Evidence supports a potential exposure, but impact is not fully determined.",
+            visibility: "Legal/privacy escalation policy, audit evidence, risk register.",
+            action: "Escalate internally according to the incident and privacy process, document uncertainty, and seek qualified legal/privacy advice where required.",
+            mapping: "Respond · Escalation",
+            choices: [
+              ["Escalate with facts, uncertainty, and evidence gaps documented", "Supports appropriate legal, privacy, and leadership decisions.", 25],
+              ["Promise stakeholders no data was exposed", "Overstates what the evidence establishes.", -15],
+              ["Avoid documentation to reduce liability", "Undermines governance and responsible incident handling.", -25]
+            ]
+          },
+          {
+            name: "Prevention",
+            subtitle: "Build guardrails for the next deployment.",
+            time: "15:00",
+            event: "The review identifies a missing preventive policy check.",
+            observation: "The risky configuration passed through deployment without an owner notification.",
+            visibility: "Infrastructure-as-code review, cloud policy engine, CI/CD checks.",
+            action: "Add policy-as-code checks, default-deny public access, ownership tags, and periodic access reviews.",
+            mapping: "Improve · Secure delivery",
+            choices: [
+              ["Add preventative guardrails and ownership checks to deployment", "Shifts detection earlier and reduces human configuration error.", 30],
+              ["Depend on manual periodic review alone", "Manual reviews are valuable but vulnerable to drift and missed changes.", 0],
+              ["Disable cloud logging to reduce cost", "Removes critical detection and investigation capability.", -25]
+            ]
+          }
+        ]
+      },
+  
+      vendor: {
+        name: "Third-party vendor incident drill",
+        summary: "A fictional SaaS vendor advises customers of a security incident that may involve shared integration data.",
+        phases: [
+          {
+            name: "Vendor notice",
+            subtitle: "A supplier sends an incident statement.",
+            time: "11:15",
+            event: "A critical business software vendor announces an ongoing security investigation.",
+            observation: "The notice is limited; your team must determine what integrations and records may be involved.",
+            visibility: "Vendor inventory, contracts, data-flow diagrams, integration logs.",
+            action: "Verify the notice through known vendor channels and identify all internal systems, data types, and owners connected to the vendor.",
+            mapping: "Identify · Third-party risk",
+            choices: [
+              ["Verify notice and map affected data flows and owners", "Establishes a reliable fact base for response.", 30],
+              ["Forward the notice to everyone without review", "Creates noise without ownership or action.", 0],
+              ["Assume the vendor will handle all risk", "Your organization retains responsibility for its own exposure and continuity.", -20]
+            ]
+          },
+          {
+            name: "Access containment",
+            subtitle: "Reduce potential exposure safely.",
+            time: "11:42",
+            event: "The vendor integration uses a service account with broad permissions.",
+            observation: "The integration remains active while the vendor investigation continues.",
+            visibility: "IAM permissions, API usage logs, business process owners.",
+            action: "Assess business impact and reduce permissions, pause nonessential integrations, or rotate credentials through approved change procedures.",
+            mapping: "Respond · Third-party containment",
+            choices: [
+              ["Reduce exposure using an approved, business-aware containment plan", "Limits risk while preserving essential operations.", 30],
+              ["Share integration credentials with a broad emergency group", "Expands sensitive access and weakens accountability.", -30],
+              ["Do nothing until the vendor gives final results", "May leave avoidable exposure open.", -15]
+            ]
+          },
+          {
+            name: "Impact analysis",
+            subtitle: "Translate technical facts into business risk.",
+            time: "12:20",
+            event: "Internal logs show the vendor processed customer contact data and scheduling records.",
+            observation: "No payment data appears in the integration, but personal and operational information may be involved.",
+            visibility: "Data inventory, contract terms, vendor reports, access logs.",
+            action: "Document affected data categories, verify contractual obligations, and involve privacy/legal leadership as required.",
+            mapping: "Respond · Risk assessment",
+            choices: [
+              ["Document data categories and escalate through governance channels", "Supports proportionate notification and remediation decisions.", 25],
+              ["Treat all data as public because it is held by a vendor", "Incorrectly dismisses confidentiality and contractual duties.", -25],
+              ["Make public statements before confirming scope", "Creates avoidable misinformation risk.", -10]
+            ]
+          },
+          {
+            name: "Continuity planning",
+            subtitle: "Maintain operations if access changes.",
+            time: "13:00",
+            event: "The vendor may temporarily disable selected platform functions.",
+            observation: "Operations depend on the vendor for scheduling and customer communications.",
+            visibility: "Business continuity plan, manual fallback procedures, service owner input.",
+            action: "Activate tested fallback procedures, define decision thresholds, and communicate operational changes to staff.",
+            mapping: "Recover · Continuity",
+            choices: [
+              ["Activate defined fallback procedures and communicate changes", "Preserves business service with controlled workarounds.", 25],
+              ["Tell staff to improvise without guidance", "Creates inconsistent processing and data-handling risk.", -10],
+              ["Continue reliance on unavailable functions", "Fails to address expected operational disruption.", -15]
+            ]
+          },
+          {
+            name: "Vendor assurance",
+            subtitle: "Use findings to strengthen supplier governance.",
+            time: "14:00",
+            event: "The tabletop review closes with identified contract and monitoring gaps.",
+            observation: "The team lacked a current data-flow diagram and a clear vendor-notification owner.",
+            visibility: "Vendor risk register, contract renewal process, audit evidence.",
+            action: "Assign vendor-risk owners, update data-flow records, test notifications, and include security requirements at renewal.",
+            mapping: "Improve · Supplier governance",
+            choices: [
+              ["Assign owners and formalize supplier assurance improvements", "Creates repeatable resilience rather than one-time cleanup.", 25],
+              ["Wait until contract renewal to capture any lessons", "Leaves identified risk unresolved for too long.", -10],
+              ["Remove every vendor immediately", "Usually impractical and not a risk-based response.", 0]
+            ]
+          }
+        ]
+      }
+    };
+  
+    const controls = [
+      "Documented incident-response plan and current contact list",
+      "Tested offline or immutable backups for critical systems",
+      "Multi-factor authentication for administrator and cloud access",
+      "Centralized endpoint, identity, and cloud audit logging",
+      "Asset inventory with accountable business and technical owners",
+      "Least-privilege access review for users and service accounts",
+      "Phishing reporting process and payment-change verification",
+      "Vendor inventory, data-flow documentation, and escalation contacts"
+    ];
+  
+    let state = {
+      started: false,
+      currentPhase: 0,
+      completed: [],
+      score: 0,
+      selections: {},
+      checkedControls: [],
+      startedAt: null
+    };
+  
+    const $ = id => document.getElementById(id);
+  
+    function getScenario() {
+      const key = ALLOWED_SCENARIOS.includes($("scenario").value) ? $("scenario").value : "ransomware";
+      return scenarios[key];
+    }
+  
+    function severityForScore() {
+      if (!state.started) return "High";
+      if (state.score >= 120) return "Low";
+      if (state.score >= 75) return "Moderate";
+      return "High";
+    }
+  
+    function renderControls() {
+      $("controlChecks").innerHTML = controls.map((control, i) => `
+        <label class="check">
+          <input type="checkbox" data-control="${i}" ${state.checkedControls.includes(i) ? "checked" : ""}>
+          <span>${escapeHtml(control)}</span>
+        </label>
+      `).join("");
+  
+      document.querySelectorAll("[data-control]").forEach(box => {
+        box.addEventListener("change", () => {
+          const id = Number(box.dataset.control);
+          state.checkedControls = box.checked
+            ? [...new Set([...state.checkedControls, id])]
+            : state.checkedControls.filter(x => x !== id);
+          updateMetrics();
+        });
+      });
+    }
+  
+    function renderPhases() {
+      const scenario = getScenario();
+      $("phaseList").innerHTML = scenario.phases.map((phase, i) => {
+        const complete = state.completed.includes(i);
+        const active = state.started && state.currentPhase === i && !complete;
+        const cls = complete ? "complete" : active ? "active" : "";
+        return `
+          <div class="phase ${cls}">
+            <div class="phase-number">${complete ? "✓" : i + 1}</div>
+            <div>
+              <div class="phase-title">${escapeHtml(phase.name)}</div>
+              <div class="phase-subtitle">${escapeHtml(phase.subtitle)}</div>
+            </div>
+            <span class="badge ${i < 2 ? "severity-high" : i < 4 ? "severity-medium" : "severity-low"}">
+              ${complete ? "Complete" : active ? "Active" : "Pending"}
+            </span>
+          </div>
+        `;
+      }).join("");
+    }
+  
+    function renderTimeline() {
+      const scenario = getScenario();
+      $("timeline").innerHTML = scenario.phases.map((phase, i) => {
+        const unlocked = state.started && i <= state.currentPhase;
+        return `
+          <div class="event ${unlocked ? "" : "locked"}">
+            <div class="event-time">${escapeHtml(phase.time)}</div>
+            <div>
+              <div class="event-title">${escapeHtml(phase.event)}</div>
+              <div class="event-detail">${escapeHtml(unlocked ? phase.observation : "Scenario inject remains locked until the prior response decision is made.")}</div>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+  
+    function renderMapping() {
+      const scenario = getScenario();
+      $("mappingTable").innerHTML = scenario.phases.map((phase, i) => {
+        const available = state.started && i <= state.currentPhase;
+        return `
+          <tr style="${available ? "" : "opacity:.38"}">
+            <td>${i + 1}. ${escapeHtml(phase.name)}</td>
+            <td class="muted">${escapeHtml(available ? phase.observation : "Locked")}</td>
+            <td class="muted">${escapeHtml(phase.visibility)}</td>
+            <td>${escapeHtml(phase.action)}</td>
+            <td class="muted">${escapeHtml(phase.mapping)}</td>
+          </tr>
+        `;
+      }).join("");
+    }
+  
+    function renderDecision() {
+      const panel = $("decisionPanel");
+      const scenario = getScenario();
+  
+      if (!state.started) {
+        panel.innerHTML = `<p class="small">Start an exercise to receive a fictional incident inject and select the most appropriate response.</p>`;
+        return;
+      }
+  
+      if (state.currentPhase >= scenario.phases.length) {
+        panel.innerHTML = `
+          <h3>Exercise complete</h3>
+          <p>You have completed the fictional scenario. Generate the report, record follow-up actions, and rerun the drill after implementing improvements.</p>
+          <button class="primary" id="completeReportBtn">Generate final report</button>
+        `;
+        $("completeReportBtn").addEventListener("click", generateReport);
+        return;
+      }
+  
+      const phase = scenario.phases[state.currentPhase];
+      const selected = state.selections[state.currentPhase];
+  
+      panel.innerHTML = `
+        <h3>Phase ${state.currentPhase + 1}: ${escapeHtml(phase.name)}</h3>
+        <p class="small"><strong>Inject:</strong> ${escapeHtml(phase.event)}</p>
+        <p>${escapeHtml(phase.observation)}</p>
+        <p class="small"><strong>Decision objective:</strong> ${escapeHtml(phase.action)}</p>
+        <div class="choice-list">
+          ${phase.choices.map((choice, i) => `
+            <button class="choice ${selected === i ? "selected" : ""}" data-choice="${i}">
+              <span>
+                <span class="choice-title">${escapeHtml(choice[0])}</span>
+                <span class="choice-detail">${escapeHtml(choice[1])}</span>
+              </span>
+              <span class="choice-score">${choice[2] > 0 ? "+" : ""}${choice[2]} pts</span>
+            </button>
+          `).join("")}
+        </div>
+        <div class="controls" style="margin-top: .9rem;">
+          <button class="primary" id="submitDecision" ${selected === undefined ? "disabled" : ""}>
+            ${state.currentPhase === scenario.phases.length - 1 ? "Complete exercise" : "Confirm decision and continue"}
+          </button>
+        </div>
+      `;
+  
+      document.querySelectorAll("[data-choice]").forEach(button => {
+        button.addEventListener("click", () => {
+          state.selections[state.currentPhase] = Number(button.dataset.choice);
+          renderDecision();
+        });
+      });
+  
+      $("submitDecision").addEventListener("click", submitDecision);
+    }
+  
+    function submitDecision() {
+      const scenario = getScenario();
+      const phase = scenario.phases[state.currentPhase];
+      const selectedIndex = state.selections[state.currentPhase];
+  
+      if (selectedIndex === undefined) return;
+  
+      const points = phase.choices[selectedIndex][2];
+      state.score += points;
+      state.completed.push(state.currentPhase);
+      state.currentPhase += 1;
+  
+      updateAll();
+      $("statusText").textContent = state.currentPhase >= scenario.phases.length
+        ? "Exercise complete. Review the report and assign corrective actions."
+        : `Decision recorded. Proceeding to phase ${state.currentPhase + 1} of ${scenario.phases.length}.`;
+    }
+  
+    function updateMetrics() {
+      const scenario = getScenario();
+      const completedCount = state.completed.length;
+      const controlPercent = Math.round((state.checkedControls.length / controls.length) * 100);
+      const exerciseScore = Math.max(0, state.score) + Math.round(controlPercent * .35);
+  
+      $("scoreValue").textContent = exerciseScore;
+      $("phaseValue").textContent = `${completedCount}/${scenario.phases.length}`;
+      $("controlsValue").textContent = `${controlPercent}%`;
+      $("riskValue").textContent = severityForScore();
+      $("progressBar").style.width = `${Math.round((completedCount / scenario.phases.length) * 100)}%`;
+    }
+  
+    function updateAll() {
+      renderPhases();
+      renderTimeline();
+      renderMapping();
+      renderDecision();
+      renderControls();
+      updateMetrics();
+    }
+  
+    function startExercise() {
+      state = {
+        started: true,
+        currentPhase: 0,
+        completed: [],
+        score: 0,
+        selections: {},
+        checkedControls: [],
+        startedAt: new Date().toLocaleString()
+      };
+      $("notes").value = "";
+      $("report").textContent = "Exercise in progress. Generate a report at any time.";
+      updateAll();
+      $("statusText").textContent = `Exercise started: ${getScenario().name}. Make a decision for phase 1.`;
+    }
+  
+    function buildReport() {
+      const scenario = getScenario();
+      const completed = state.completed.length;
+      const selectedRows = scenario.phases.map((phase, i) => {
+        const selected = state.selections[i];
+        if (selected === undefined) return `Phase ${i + 1}: Not completed`;
+        const choice = phase.choices[selected];
+        return `Phase ${i + 1} — ${phase.name}
+Decision: ${choice[0]}
+Assessment: ${choice[1]}
+Points: ${choice[2]}`;
+      }).join("\\n\\n");
+  
+      const controlList = controls.map((control, i) =>
+        `${state.checkedControls.includes(i) ? "[x]" : "[ ]"} ${control}`
+      ).join("\\n");
+  
+      const rawScore = Math.max(0, state.score);
+      const controlPct = Math.round((state.checkedControls.length / controls.length) * 100);
+      const overall = rawScore + Math.round(controlPct * .35);
+  
+      return `CYBER RANGE SIMULATOR — DEFENSIVE TABLETOP REPORT
+==================================================
+  
+Status: ${completed === scenario.phases.length ? "Completed" : "In progress"}
+Scenario: ${scenario.name}
+Organization / Team: ${clampText($("organization").value, 200) || "Not specified"}
+Facilitator: ${clampText($("facilitator").value, 200) || "Not specified"}
+Difficulty: ${$("difficulty").options[$("difficulty").selectedIndex].text}
+Start time: ${state.startedAt || "Not started"}
+Report time: ${new Date().toLocaleString()}
+  
+Primary objective:
+${clampText($("objective").value, MAX_TEXT) || "Not specified"}
+  
+Scenario summary:
+${scenario.summary}
+  
+SCORECARD
+---------
+Completed phases: ${completed}/${scenario.phases.length}
+Decision score: ${rawScore}
+Control validation: ${controlPct}% (${state.checkedControls.length}/${controls.length})
+Overall readiness indicator: ${overall}
+Current risk indicator: ${severityForScore()}
+  
+DECISION RECORD
+---------------
+${selectedRows}
+  
+CONTROL VALIDATION
+------------------
+${controlList}
+  
+FACILITATOR NOTES
+-----------------
+${clampText($("notes").value, MAX_TEXT) || "No notes recorded."}
+  
+RECOMMENDED NEXT STEPS
+----------------------
+1. Convert every identified gap into an assigned action with an accountable owner and target date.
+2. Validate the highest-risk control gap with an evidence-based test, not a policy statement alone.
+3. Retest the scenario after improvements, using a different facilitator inject or timed decision constraint.
+4. Keep this report in the authorized security-governance record; do not include unnecessary sensitive operational details.
+  
+USE BOUNDARY
+------------
+This report documents a fictional, defensive tabletop exercise. It does not demonstrate live-system security, authorize testing, or contain operational intrusion instructions.`;
+    }
+  
+    function generateReport() {
+      $("report").textContent = buildReport();
+      $("statusText").textContent = "Report generated locally. Use Print / save PDF for a portable copy.";
+    }
+  
+    function sanitizeState(raw) {
+      const base = {
+        started: false,
+        currentPhase: 0,
+        completed: [],
+        score: 0,
+        selections: {},
+        checkedControls: [],
+        startedAt: null
+      };
+      if (!raw || typeof raw !== "object") return base;
+      const completed = Array.isArray(raw.completed)
+        ? raw.completed.map((n) => safeInt(n, -1)).filter((n) => n >= 0 && n < 5)
+        : [];
+      const checkedControls = Array.isArray(raw.checkedControls)
+        ? raw.checkedControls.map((n) => safeInt(n, -1)).filter((n) => n >= 0 && n < controls.length)
+        : [];
+      const selections = {};
+      if (raw.selections && typeof raw.selections === "object") {
+        Object.keys(raw.selections).forEach((key) => {
+          const phase = safeInt(key, -1);
+          const choice = safeInt(raw.selections[key], -1);
+          if (phase >= 0 && phase < 5 && choice >= 0 && choice < 3) {
+            selections[phase] = choice;
+          }
+        });
+      }
+      return {
+        started: Boolean(raw.started),
+        currentPhase: Math.min(5, Math.max(0, safeInt(raw.currentPhase, 0))),
+        completed,
+        score: Math.max(-500, Math.min(500, safeInt(raw.score, 0))),
+        selections,
+        checkedControls,
+        startedAt: typeof raw.startedAt === "string" ? clampText(raw.startedAt, 80) : null
+      };
+    }
+
+    function saveScenario() {
+      try {
+        const payload = {
+          version: 1,
+          state: sanitizeState(state),
+          organization: clampText($("organization").value, 200),
+          facilitator: clampText($("facilitator").value, 200),
+          scenario: ALLOWED_SCENARIOS.includes($("scenario").value) ? $("scenario").value : "ransomware",
+          difficulty: ALLOWED_DIFFICULTY.includes($("difficulty").value) ? $("difficulty").value : "guided",
+          objective: clampText($("objective").value, MAX_TEXT),
+          notes: clampText($("notes").value, MAX_TEXT),
+          savedAt: new Date().toISOString()
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+        localStorage.removeItem("cyberRangeSimulatorState");
+        $("statusText").textContent = "Saved locally in this browser. This does not upload anything.";
+      } catch (error) {
+        $("statusText").textContent = "Unable to save locally (storage may be unavailable).";
+      }
+    }
+
+    function loadScenario() {
+      let saved = localStorage.getItem(STORAGE_KEY);
+      if (!saved) {
+        saved = localStorage.getItem("cyberRangeSimulatorState");
+      }
+      if (!saved) {
+        $("statusText").textContent = "No saved local scenario was found in this browser.";
+        return;
+      }
+
+      try {
+        const payload = JSON.parse(saved);
+        if (!payload || typeof payload !== "object") throw new Error("invalid payload");
+        state = sanitizeState(payload.state);
+        $("organization").value = clampText(payload.organization, 200);
+        $("facilitator").value = clampText(payload.facilitator, 200);
+        $("scenario").value = ALLOWED_SCENARIOS.includes(payload.scenario) ? payload.scenario : "ransomware";
+        $("difficulty").value = ALLOWED_DIFFICULTY.includes(payload.difficulty) ? payload.difficulty : "guided";
+        $("objective").value = clampText(payload.objective, MAX_TEXT);
+        $("notes").value = clampText(payload.notes, MAX_TEXT);
+        updateAll();
+        const when = payload.savedAt ? new Date(payload.savedAt).toLocaleString() : "unknown time";
+        $("statusText").textContent = "Local scenario restored. Saved: " + when + ".";
+      } catch (error) {
+        $("statusText").textContent = "Saved data could not be read. Start a new exercise instead.";
+      }
+    }
+  
+    $("startBtn").addEventListener("click", startExercise);
+    $("saveBtn").addEventListener("click", saveScenario);
+    $("loadBtn").addEventListener("click", loadScenario);
+    $("reportBtn").addEventListener("click", generateReport);
+    $("printBtn").addEventListener("click", () => {
+      generateReport();
+      window.print();
+    });
+  
+    $("scenario").addEventListener("change", () => {
+      if (state.started) {
+        $("statusText").textContent = "Scenario changed. Select Start / restart exercise to avoid mixing exercise records.";
+      }
+      renderPhases();
+      renderTimeline();
+      renderMapping();
+    });
+  
+    updateAll();
+  })();
+  </script>
+</body>
+</html>
