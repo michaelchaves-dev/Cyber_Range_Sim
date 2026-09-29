@@ -32,7 +32,8 @@ Out of scope:
 
 ### 1. Network isolation
 
-- CSP: `default-src 'none'`; `connect-src 'none'`; `font-src 'none'`; `object-src 'none'`; `worker-src 'none'`; `frame-ancestors 'none'`; `base-uri 'none'`; `form-action 'none'`.
+- CSP: `default-src 'none'`; `connect-src 'none'`; `font-src 'none'`; `object-src 'none'`; `worker-src 'none'`; `base-uri 'none'`; `form-action 'none'`.
+- `frame-ancestors` omitted from the meta CSP (browsers ignore it on `<meta>`; use an HTTP header if this file is ever hosted).
 - Inline style/script only (`'unsafe-inline'`) because this is a single-file offline artifact without a nonce-issuing server.
 - `referrer` meta set to `no-referrer`.
 - No `<img src=http...>`, no remote fonts, no analytics beacons.
